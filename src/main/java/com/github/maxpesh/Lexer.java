@@ -20,7 +20,7 @@ class Lexer {
             start = current;
             scanToken();
         }
-        tokens.add(new Token(TokenType.EOF, "", line));
+        tokens.add(new Token(TokenType.EOF, "", line, start));
         return tokens;
     }
 
@@ -34,18 +34,20 @@ class Lexer {
                 if (match('>')) {
                     addToken(TokenType.ARROW);
                 } else {
-                    Main.error(source, line, current, "unexpected character");
-                    ;
+                    Main.error(line, current - 1, "unexpected character");
                 }
             }
+            case ';' -> addToken(TokenType.SEMICOLON);
             case ' ', '\r', '\t' -> {
             }
             case '\n' -> line++;
             default -> {
-                if (isAlphaNumeric(c)) {
+                if (isLowerCaseAlpha(c)) {
                     attribute();
+                } else if (isAlphaNumeric(c)) {
+                    string();
                 } else {
-                    Main.error(source, line, current, "unexpected character");
+                    Main.error(line, current - 1, "unexpected character");
                 }
             }
         }
@@ -58,9 +60,16 @@ class Lexer {
         addToken(TokenType.ATTRIBUTE);
     }
 
+    private void string() {
+        while (isAlphaNumeric(peek())) {
+            advance();
+        }
+        addToken(TokenType.STRING);
+    }
+
     private void addToken(TokenType type) {
         var lexeme = source.substring(start, current);
-        tokens.add(new Token(type, lexeme, line));
+        tokens.add(new Token(type, lexeme, line, start));
     }
 
     private char peek() {
@@ -90,5 +99,9 @@ class Lexer {
                 (c >= 'A' && c <= 'Z') ||
                 (c >= '0' && c <= '9') ||
                 c == '_';
+    }
+
+    private boolean isLowerCaseAlpha(char c) {
+        return (c >= 'a' && c <= 'z') || c == '_';
     }
 }
