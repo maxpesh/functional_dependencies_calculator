@@ -7,7 +7,8 @@ import java.util.List;
 
 public class Main {
     static boolean hadError;
-    static String source;
+    private static String source;
+    private static Interpreter interpreter = new Interpreter();
 
     public static void main(String[] args) throws IOException {
         runPrompt();
@@ -34,10 +35,11 @@ public class Main {
             return;
         }
         Parser parser = new Parser(tokens);
-        parser.parse();
+        Expr expr = parser.parse();
         if (hadError) {
             return;
         }
+        interpreter.interpret(expr);
     }
 
     static void error(int line, int character, String msg) {
@@ -71,7 +73,7 @@ public class Main {
                 line.substring(tokenStart, tokenEnd),
                 line.substring(tokenEnd));
         System.out.printf("%7s\t\t" + inRed("%" + tokenStart + "s" + "%s" + "%s") + "\n",
-                "|", "~".repeat(charInd - tokenStart), "^", "~".repeat(tokenEnd - charInd - 1));
+                "|", "~".repeat(charInd - tokenStart), "^", "~".repeat(tokenEnd - (charInd + 1)));
         hadError = true;
     }
 
