@@ -22,7 +22,7 @@ class Parser {
 
     private Expr commandLine() {
         Expr expr = attributes();
-        Token operator = consume(SEMICOLON, "Expect ';' before the list of functional dependencies");
+        Token operator = consume(SEMICOLON, "Expect ';' after the list of attributes");
         Expr right = funcDependencies();
         return new Binary(expr, operator, right);
     }

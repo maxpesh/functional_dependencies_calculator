@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
 
+import static java.lang.Math.max;
+
 public class Main {
     static boolean hadError;
     private static String source;
@@ -72,8 +74,8 @@ public class Main {
                 line.substring(0, tokenStart),
                 line.substring(tokenStart, tokenEnd),
                 line.substring(tokenEnd));
-        System.out.printf("%7s\t\t" + inRed("%" + tokenStart + "s" + "%s" + "%s") + "\n",
-                "|", "~".repeat(charInd - tokenStart), "^", "~".repeat(tokenEnd - (charInd + 1)));
+        System.out.printf("%7s\t\t" + inRed("%" + (tokenStart > 0 ? tokenStart : "") + "s" + "%s" + "%s") + "\n",
+                "|", "~".repeat(charInd - tokenStart), "^", "~".repeat(max(tokenEnd - (charInd + 1), 0)));
         hadError = true;
     }
 
