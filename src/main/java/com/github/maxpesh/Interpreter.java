@@ -4,8 +4,8 @@ import java.util.*;
 
 class Interpreter implements ExprVisitor {
     void interpret(Expr expression) {
-        Set<String> closure = (Set<String>) evaluate(expression);
-        System.out.printf("{%s}\n", String.join(",", closure));
+        Object value = evaluate(expression);
+        System.out.println(stringify(value));
     }
 
     private Object evaluate(Expr expr) {
@@ -15,37 +15,48 @@ class Interpreter implements ExprVisitor {
     @Override
     public Object visitBinary(Binary expr) {
         switch (expr.operator().type()) {
-            case SEMICOLON -> {
-                Set<String> attrs = (Set<String>) evaluate(expr.left());
-                List<FuncDep> funcDeps = (List<FuncDep>) evaluate(expr.right());
-                return closure(attrs, funcDeps);
+            case SEMICOLON -> { // <commandline> ::= <funcdependencies> ";" "{" <attributes> "}" "+" "?"
+                List<FuncDep> funcDeps = (List<FuncDep>) evaluate(expr.left());
+                Set<String> attrs = (Set<String>) evaluate(expr.right());
+                return closure(funcDeps, attrs);
             }
-            case COMMA -> {
+            case FOLLOWS -> { // <commandline> ::= <funcdependencies> "=>" <funcdependency> "?"
+                List<FuncDep> funcDeps = (List<FuncDep>) evaluate(expr.left());
+                FuncDep funcDep = (FuncDep) evaluate(expr.right());
+                return follows(funcDeps, funcDep);
+            }
+            case COMMA -> { // <attributes> ::= <literal> ("," <literal>)*
                 Object left = evaluate(expr.left());
                 if (left instanceof Set<?>) {
                     Set<String> attrs = (Set<String>) left;
                     attrs.addAll((Set<String>) evaluate(expr.right()));
                     return attrs;
-                } else if (left instanceof List<?>) {
-                    List<FuncDep> funcDeps = (List<FuncDep>) left;
-                    funcDeps.addAll((Collection<FuncDep>) evaluate(expr.right()));
-                    return funcDeps;
                 } else {
                     throw new RuntimeException("unknown type of the operand");
                 }
             }
-            case ARROW -> {
-                ArrayList<FuncDep> list = new ArrayList<>();
+            case COMMA_SPACE -> { // <funcdependencies> ::= "{" <funcdependency> (", " <funcdependency>)* "}"
+                List<FuncDep> funcDeps;
+                Object left = evaluate(expr.left());
+                if (left instanceof FuncDep) {
+                    funcDeps = new ArrayList<>();
+                    funcDeps.add((FuncDep) left);
+                } else {
+                    funcDeps = (List<FuncDep>) left;
+                }
+                funcDeps.add((FuncDep) evaluate(expr.right()));
+                return funcDeps;
+            }
+            case ARROW -> { // <funcdependency> ::= <attributes> "->" <attributes>
                 Set<String> lhs = (Set<String>) evaluate(expr.left());
                 Set<String> rhs = (Set<String>) evaluate(expr.right());
-                list.add(new FuncDep(lhs, rhs));
-                return list;
+                return new FuncDep(lhs, rhs);
             }
-            default -> throw new RuntimeException("unknown operator");
+            default -> throw new RuntimeException("unknown operator: %s".formatted(expr.operator().lexeme()));
         }
     }
 
-    private Set<String> closure(Set<String> attrs, List<FuncDep> funcDeps) {
+    private Set<String> closure(List<FuncDep> funcDeps, Set<String> attrs) {
         Set<String> closure = new HashSet<>(attrs);
         int prevLen = 0;
 
@@ -60,6 +71,11 @@ class Interpreter implements ExprVisitor {
         return closure;
     }
 
+    private Object follows(List<FuncDep> funcDeps, FuncDep funcDep) {
+        Set<String> closure = closure(funcDeps, funcDep.lhs);
+        return closure.containsAll(funcDep.rhs);
+    }
+
     private boolean isSubset(FuncDep funcDep, Set<String> attrs) {
         return attrs.containsAll(funcDep.lhs);
     }
@@ -69,6 +85,16 @@ class Interpreter implements ExprVisitor {
         HashSet<String> set = new HashSet<>();
         set.add(expr.value());
         return set;
+    }
+
+    private String stringify(Object value) {
+        if (value instanceof Set<?>) {
+            Set<String> closure = (Set<String>) value;
+            return String.join(",", closure);
+        } else if (value instanceof Boolean isFollows) {
+            return isFollows.toString();
+        }
+        return value.toString();
     }
 
     private record FuncDep(Set<String> lhs, Set<String> rhs) {

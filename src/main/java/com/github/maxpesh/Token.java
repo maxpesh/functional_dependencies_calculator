@@ -5,9 +5,9 @@ public record Token(TokenType type, String lexeme, int line, int startIndex) {
 
 enum TokenType {
     // Single-character tokens
-    LEFT_BRACE, RIGHT_BRACE, COMMA, SEMICOLON,
+    LEFT_BRACE, RIGHT_BRACE, COMMA, SEMICOLON, PLUS, QUESTION,
     // two character tokens.
-    ARROW,
+    ARROW, FOLLOWS, COMMA_SPACE,
     // Literals
     STRING, ATTRIBUTE,
     EOF

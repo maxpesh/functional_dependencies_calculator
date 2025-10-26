@@ -4,6 +4,16 @@ import java.util.List;
 
 import static com.github.maxpesh.TokenType.*;
 
+/*
+  <commandline> ::= <funcdependencies> ((";" "{" <attributes> "}" "+" "?") | ("=>" <funcdependency> "?"))
+  <attributes> ::= <literal> ("," <literal>)*
+  <funcdependencies> ::= "{" <funcdependency> (", " <funcdependency>)* "}"
+  <funcdependency> ::= <attributes> "->" <attributes>
+  <literal> ::= <attribute> | <string>
+  <attribute> ::= ([a-z] | "_") ([a-z] | [A-Z] | [0-9] | "_")*
+  -- error production
+  <string> ::= ([a-z] | [A-Z] | [0-9] | "_")+
+*/
 class Parser {
     private final List<Token> tokens;
     private int current = 0;
@@ -21,31 +31,44 @@ class Parser {
     }
 
     private Expr commandLine() {
-        Expr expr = attributes();
-        Token operator = consume(SEMICOLON, "Expect ';' after the list of attributes");
-        Expr right = funcDependencies();
-        return new Binary(expr, operator, right);
+        Expr expr = funcDependencies();
+        if (match(SEMICOLON)) {
+            Token operator = previous();
+            consume(LEFT_BRACE, "Expect '{'");
+            Expr right = attributes();
+            consume(RIGHT_BRACE, "Expect '}'");
+            consume(PLUS, "Expect '+'");
+            consume(QUESTION, "Expect '?'");
+            return new Binary(expr, operator, right);
+        } else if (match(TokenType.FOLLOWS)) {
+            Token operator = previous();
+            Expr right = funcDependency();
+            consume(QUESTION, "Expect '?'");
+            return new Binary(expr, operator, right);
+        } else {
+            throw error(peek(), "Expect ';' or '=>' after the list of attributes");
+        }
     }
 
     private Expr attributes() {
-        consume(LEFT_BRACE, "Expect '{'");
         Expr expr = literal();
         while (match(COMMA)) {
             Token operator = previous();
             Expr right = literal();
             expr = new Binary(expr, operator, right);
         }
-        consume(RIGHT_BRACE, "Expect '}'");
         return expr;
     }
 
     private Expr funcDependencies() {
+        consume(LEFT_BRACE, "Expect '{'");
         Expr expr = funcDependency();
-        while (match(COMMA)) {
+        while (match(COMMA_SPACE)) {
             Token operator = previous();
             Expr right = funcDependency();
             expr = new Binary(expr, operator, right);
         }
+        consume(RIGHT_BRACE, "Expect '}'");
         return expr;
     }
 

@@ -29,15 +29,29 @@ class Lexer {
         switch (c) {
             case '{' -> addToken(TokenType.LEFT_BRACE);
             case '}' -> addToken(TokenType.RIGHT_BRACE);
-            case ',' -> addToken(TokenType.COMMA);
-            case '-' -> {
-                if (match('>')) {
-                    addToken(TokenType.ARROW);
+            case ',' -> {
+                if (peek() == ' ') {
+                    addToken(TokenType.COMMA_SPACE);
+                    advance();
                 } else {
-                    Main.error(line, current - 1, "unexpected character");
+                    addToken(TokenType.COMMA);
                 }
             }
+            case '-' -> {
+                if (match('>'))
+                    addToken(TokenType.ARROW);
+                else
+                    Main.error(line, current, "expect >");
+            }
+            case '=' -> {
+                if (match('>'))
+                    addToken(TokenType.FOLLOWS);
+                else
+                    Main.error(line, current, "expect >");
+            }
             case ';' -> addToken(TokenType.SEMICOLON);
+            case '+' -> addToken(TokenType.PLUS);
+            case '?' -> addToken(TokenType.QUESTION);
             case ' ', '\r', '\t' -> {
             }
             case '\n' -> line++;

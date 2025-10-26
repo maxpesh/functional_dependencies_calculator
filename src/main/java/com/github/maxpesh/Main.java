@@ -7,16 +7,6 @@ import java.util.List;
 
 import static java.lang.Math.max;
 
-/*
-  <commandline> ::= <attributes> ";" <funcdependencies>
-  <attributes> ::= "{" <literal> ("," <literal>)* "}"
-  <funcdependencies> ::= <funcdependency> ("," <funcdependency>)*
-  <funcdependency> ::= <attributes> "->" <attributes>
-  <literal> ::= <attribute> | <string>
-  <attribute> ::= ([a-z] | "_") ([a-z] | [A-Z] | [0-9] | "_")*
-  -- error production
-  <string> ::= ([a-z] | [A-Z] | [0-9] | "_")+
-*/
 public class Main {
     static boolean hadError;
     private static String source;
@@ -35,20 +25,20 @@ public class Main {
                 break;
             } else if (line.equals("help")) {
                 System.out.println("""
-                          U͟s͟a͟g͟e͟:
-                          Given a list of functional dependencies: {a,b}->{c}, {b,c}->{a,d}, {d}->{e}, {c,f}->{b}
-                          to find {a,b}⁺, you should write (whitespace is ignored):
-                          {a,b}; {a,b}->{c}, {b,c}->{a,d}, {d}->{e}, {c,f}->{b}
-                          -----  ----------------------------------------------
-                            ^                functional dependencies
-                            |____ initial attributes
+                        U͟͟͟s͟͟͟a͟͟͟g͟͟͟e͟͟͟ ͟e͟x͟a͟m͟p͟l͟e͟:
+                        Given a list of functional dependencies: {a,b}->{c}, {b,c}->{a,d}, {d}->{e}, {c,f}->{b}
+                         * to find {a,b}⁺, you should write:
+                           {a,b->c, b,c->a,d, d->e, c,f->b}; {a,b}+ ?
+                         * to test whether a,b->d follows from these FD’s, you should write:
+                           {a,b->c, b,c->a,d, d->e, c,f->b} => a,b->d ?
                         
-                          F͟u͟l͟l͟ ͟g͟r͟a͟m͟m͟a͟r͟:
-                          <attributes> ";" <funcdependencies>
-                          <attributes> ::= "{" <literal> ("," <literal>)* "}"
-                          <funcdependencies> ::= <funcdependency> ("," <funcdependency>)*
-                          <funcdependency> ::= <attributes> "->" <attributes>
-                          <literal> ::= ([a-z] | "_") ([a-z] | [A-Z] | [0-9] | "_")*
+                        F͟u͟l͟l͟ ͟g͟r͟a͟m͟m͟a͟r͟:
+                        <commandline> ::= <funcdependencies> ((";" "{" <attributes> "}" "+" "?") | ("=>" <funcdependency> "?"))
+                        <attributes> ::= <literal> ("," <literal>)*
+                        <funcdependencies> ::= "{" <funcdependency> (", " <funcdependency>)* "}"
+                        <funcdependency> ::= <attributes> "->" <attributes>
+                        <literal> ::= <attribute>
+                        <attribute> ::= ([a-z] | "_") ([a-z] | [A-Z] | [0-9] | "_")*
                         """);
                 continue;
             }
