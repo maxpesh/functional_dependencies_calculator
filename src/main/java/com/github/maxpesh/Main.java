@@ -10,7 +10,7 @@ import static java.lang.Math.max;
 public class Main {
     static boolean hadError;
     private static String source;
-    private static Interpreter interpreter = new Interpreter();
+    private static final Interpreter interpreter = new Interpreter();
 
     public static void main(String[] args) throws IOException {
         runPrompt();

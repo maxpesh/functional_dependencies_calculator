@@ -117,10 +117,6 @@ class Parser {
         return new ParseError();
     }
 
-    private boolean isLowerCaseAlpha(char c) {
-        return (c >= 'a' && c <= 'z') || c == '_';
-    }
-
     private static class ParseError extends RuntimeException {
     }
 }

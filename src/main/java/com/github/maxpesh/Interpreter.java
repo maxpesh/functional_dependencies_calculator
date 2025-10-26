@@ -18,8 +18,7 @@ class Interpreter implements ExprVisitor {
             case SEMICOLON -> {
                 Set<String> attrs = (Set<String>) evaluate(expr.left());
                 List<FuncDep> funcDeps = (List<FuncDep>) evaluate(expr.right());
-                Set<String> closure = closure(attrs, funcDeps);
-                return closure;
+                return closure(attrs, funcDeps);
             }
             case COMMA -> {
                 Object left = evaluate(expr.left());
@@ -42,9 +41,7 @@ class Interpreter implements ExprVisitor {
                 list.add(new FuncDep(lhs, rhs));
                 return list;
             }
-            default -> {
-                throw new RuntimeException("unknown operator");
-            }
+            default -> throw new RuntimeException("unknown operator");
         }
     }
 
