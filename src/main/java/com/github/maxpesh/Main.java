@@ -7,6 +7,16 @@ import java.util.List;
 
 import static java.lang.Math.max;
 
+/*
+  <commandline> ::= <attributes> ";" <funcdependencies>
+  <attributes> ::= "{" <literal> ("," <literal>)* "}"
+  <funcdependencies> ::= <funcdependency> ("," <funcdependency>)*
+  <funcdependency> ::= <attributes> "->" <attributes>
+  <literal> ::= <attribute> | <string>
+  <attribute> ::= ([a-z] | "_") ([a-z] | [A-Z] | [0-9] | "_")*
+  -- error production
+  <string> ::= ([a-z] | [A-Z] | [0-9] | "_")+
+*/
 public class Main {
     static boolean hadError;
     private static String source;
@@ -23,6 +33,24 @@ public class Main {
             var line = input.readLine();
             if (line == null) {
                 break;
+            } else if (line.equals("help")) {
+                System.out.println("""
+                          U͟s͟a͟g͟e͟:
+                          Given a list of functional dependencies: {a,b}->{c}, {b,c}->{a,d}, {d}->{e}, {c,f}->{b}
+                          to find {a,b}⁺, you should write (whitespace is ignored):
+                          {a,b}; {a,b}->{c}, {b,c}->{a,d}, {d}->{e}, {c,f}->{b}
+                          -----  ----------------------------------------------
+                            ^                functional dependencies
+                            |____ initial attributes
+                        
+                          F͟u͟l͟l͟ ͟g͟r͟a͟m͟m͟a͟r͟:
+                          <attributes> ";" <funcdependencies>
+                          <attributes> ::= "{" <literal> ("," <literal>)* "}"
+                          <funcdependencies> ::= <funcdependency> ("," <funcdependency>)*
+                          <funcdependency> ::= <attributes> "->" <attributes>
+                          <literal> ::= ([a-z] | "_") ([a-z] | [A-Z] | [0-9] | "_")*
+                        """);
+                continue;
             }
             run(line);
             hadError = false;
